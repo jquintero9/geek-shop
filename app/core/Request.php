@@ -4,9 +4,11 @@ namespace app\core;
 
 require_once CORE . "Url.php";
 require_once CONTROLLERS . "IndexController.php";
+require_once CONTROLLERS . "ForbiddenController.php";
 
 use app\core\Url;
 use app\controllers\IndexController;
+use app\controllers\ForbiddenController;
 
 /**
  * Esta clase se encarga de recibir y procesar la petición 
@@ -52,18 +54,30 @@ class Request {
                     
                     self::setID($coincidences);
                     
-                    /* Se Crea y se retorna la instancia del controlador
-                     * al cual pertenece la URL solicitada. */
-                    require_once CONTROLLERS . $controller . ".php";
-                    
-                    $instacne = 'app\\controllers' . DS . $controller;
-                    
-                    return new $instacne;
+                    return self::redirect($controller);
                 }
             }
         }
         else {
             return new IndexController();
+        }
+    }
+    
+    /** Se válida que exista una sesión para poder entrar al sistema, de lo
+     * contrario se bloquea el acceso.
+     * Se Crea y se retorna la instancia del controlador
+     * al cual pertenece la URL solicitada. */
+    private function redirect($controller) {
+        if (isset($_SESSION["user"]) || ($controller == "LoginController")) {
+                    
+            require_once CONTROLLERS . $controller . ".php";
+
+            $instacne = 'app\\controllers' . DS . $controller;
+
+            return new $instacne;
+        }
+        else {
+            return new ForbiddenController();
         }
     }
     

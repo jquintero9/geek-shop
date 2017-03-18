@@ -9,8 +9,10 @@
 namespace app\controllers;
 
 require_once CONTROLLERS . "Controller.php";
+require_once CONTROLLERS . "ForbiddenController.php";
 
 use app\controllers\Controller;
+use app\controllers\ForbiddenController;
 
 /**
  * Description of Admin
@@ -26,11 +28,16 @@ class AdminController extends Controller {
     }
     
     protected function get() {
-        $this->render();
+        if (isset($_SESSION["user"])) {
+            $this->render();
+        }
+        else {
+            $forbidden = new ForbiddenController();
+            $forbidden->httpRequestProcess();
+            
+        }
     }
     
-    protected function post() {
-        
-    }
+    protected function post() {}
     
 }

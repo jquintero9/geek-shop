@@ -12,5 +12,7 @@
         <?php include TEMPLATES . $this->context["content"] ?>
         </div>
     </div>
+    <!-- En este bloque se incluyen los archivos JS -->
+    <?php if (isset($this->loginAJAX)) print($this->loginAJAX); ?>
 </body>
 </html>

@@ -28,7 +28,7 @@ class Model {
     protected $indexesOfTable;
     protected $response;
     protected $messages;
-    protected $connection;
+    public $connection;
     
     protected $className;
 
@@ -36,7 +36,10 @@ class Model {
         $this->response = array();
     }
     
-    private function connectDB() {
+    /**
+     * Crea una instancia de conexión a la base de datos.
+     */
+    public function connectDB() {
         require_once CORE . "Database.php";
         $this->connection = new \Database();
     }
@@ -74,12 +77,29 @@ class Model {
      */
     public function select($sql = null) {
         $this->connectDB();
-        print("<br/>Nombre de la tabla: " . $this->tableName);
+        
         $sentenceSQL = ($sql != null) ? $sql : "SELECT * FROM $this->tableName";
+        
         $stm = $this->connection->prepare($sentenceSQL);
         
-        print($sentenceSQL);
+        try {
+            $this->executeSelect($stm);
+        } catch (\PDOException $e) {
+            $this->response["state"] = self::ERROR;
+            $this->response["message"] = "Ocurrio un error al ejecutar la consulta.";
+        }
         
+        $this->response["data"] = $this->response["data"];
+        return json_encode($this->response);
+    }
+    
+    /**
+     * Ejecuta la consulta SELECT y verifica que halla obtenido resultados.
+     * Genera la respuesta dependiendo del resultado obtenido en la consulta.
+     * 
+     * @param type $stm instancia de la consultad SQL.
+     */
+    private function executeSelect($stm) {
         if ($stm->execute()) {
             if ($stm->rowCount() > 0) {
                 $this->response["data"] = "";
@@ -92,30 +112,77 @@ class Model {
                 $this->response["message"] = $this->messages[self::SELECT];
             }
         }
-        
-        $this->response["data"] = utf8_encode($this->response["data"]);
-        return json_encode($this->response);
     }
     
+    /**
+     * Genera el código HTML que contiene los datos obtenidos en la
+     * consulta.
+     * 
+     * @param type $statement instancia de la consulta SQL.
+     */
     private function generateRows($statement) {
         foreach ($statement->fetchAll() as $register) {
             $this->response["data"] .= "<tr>";
             foreach ($this->indexesOfTable as $index) {
-                $this->response["data"] .= "<td>" . $register[$index] . "</td>";
+                $this->response["data"] .= "<td>" . utf8_encode($register[$index]) . "</td>";
             }
             $this->response["data"] .= "</tr>";
         }
     }
     
-    
-    
-    
-
     /**
-     * Inserta un nuevo registro en la tabla.
+     * Inserta un registro en la base de datos.
+     * 
+     * @param type $SQL consulta SQL de tipo INSERT INTO.
+     * @param type $binParams lista de valores que se deben reemplazar
+     * en la consulta SQL.
+     * @param type $POST son los datos que se van a insertar.
+     * @return type json este objeto contiene información acerca del resultado
+     * de la consulta.
      */
-    public function insert() {
+    public function insert($SQL, $binParams, $POST) {
+        //Se crea una conexión a la base de datos.
+        $this->connectDB();
+        
+        $stm = $this->connection->prepare($SQL);
+        
+        //Se reemplazan los bindParam en la consulta SQL.
+        foreach ($POST as $key => $value) {
+            $stm->bindParam($binParams[$key], $value);
+        }
+        
+        try {
+            $this->executeInsert($stm, $POST);
+        } catch (\PDOException $ex) {
+            $this->response["state"] = self::ERROR;
+            $this->response["message"] = "Ocurrio un error al insertar el registro";
+        }
+        
+        
+        $stm = null;
+        $this->connection = null;
+        
+        return json_encode($this->response);
+    }
+    
+    /**
+     * Ejecuta la consulta de tipo INSERT INTO.
+     * 
+     * @param type $stm instancia de la consulta SQL.
+     * @param type $POST datos que serán registrados en la base de datos.
+     */
+    private function executeInsert($stm, $POST) {
+        if ($stm->execute()) {
+            $message = $this->messages[self::INSERT];
 
+            $this->messages[self::INSERT] = str_replace(
+                    "{objectName}", 
+                    $POST["nombre"],
+                    $message);
+
+            $this->response["state"] = self::SUCCESS;
+            $_SESSION["message"] = $this->messages[self::INSERT];
+        }
     }
     
     /**

@@ -14,15 +14,22 @@ use app\models\LoginModel;
  * @author JHON
  */
 class LoginController extends Controller {
-
+    
+    public $loginAJAX;
+    
     public function __construct() {
         parent::__construct("Login");
         $this->templateName = "login.php";
     }
 
     protected function get() {
-
-        $this->render();
+        //$this->loginAJAX = "<script src='". URL . "public/js/loginAJAX.js" ."'></script>";
+        if (!isset($_SESSION["user"])) {
+            $this->render();
+        }
+        else {
+            header("Location: " . URL . "admin");
+        }
     }
 
     protected function post() {

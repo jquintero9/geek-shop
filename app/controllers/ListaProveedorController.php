@@ -1,6 +1,5 @@
 <?php
 
-
 namespace app\controllers;
 
 require_once CONTROLLERS . "Controller.php";

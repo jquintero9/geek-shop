@@ -23,6 +23,7 @@ class Url {
         "ListaProducto" => "/admin\/producto$/",
         "ListaPais" => "/admin\/pais$/",
         "CrearPais" => "/admin\/pais\/crear$/",
+        "CrearFabricante" => "/admin\/fabricante\/crear$/",
         "EditarPais" => "/admin\/pais\/(?P<id>[0-9]+)\/editar$/",
     ];
     

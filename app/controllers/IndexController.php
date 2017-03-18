@@ -20,7 +20,13 @@ class IndexController extends Controller {
     
     
     protected function get() {
-        $this->render();
+        if (!isset($_SESSION["user"])) {
+            $this->render();
+        }
+        else {
+            header("Location: " . URL . "admin");
+        }
+        
     }
 
     protected function post() {}

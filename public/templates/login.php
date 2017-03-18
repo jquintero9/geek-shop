@@ -2,7 +2,7 @@
 <div class="message-container">
     <span><?php if($this->response) print($this->response->message) ?></span>
 </div>
-<form action="" method="POST">
+<form id="login-form" action="" method="POST">
     <div class="container-input">
         <label for="id_username"><b>Usuario:</b></label>
         <input id="id_username" type="text" name="username" value="<?php if($this->response) print($this->response->username) ?>" maxlength="30" required />

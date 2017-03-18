@@ -3,7 +3,7 @@
     <nav>
         <ul>
            <?php 
-            if(isset($_SESSION["user"])) {                
+            if(isset($_SESSION["user"])) {
                 print('<li><a href="' . URL_LOGOUT . '">Salir</a></li>');
             }
             else {

@@ -26,8 +26,8 @@ class PaisModel extends Model {
         $this->indexesOfTable = ["id", "nombre"];
         $this->messages = [
             Model::SELECT => "La tabla PAÍSES está vacía.",
+            Model::INSERT => "Se ha creado el registro <b>{objectName}</b> correctamente."
         ];
     }
-    
 
 }
