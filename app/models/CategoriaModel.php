@@ -22,6 +22,7 @@ class CategoriaModel extends Model {
     function __construct() {
         parent::__construct();
         $this->tableName = "categorias";
+        $this->className = "CategoriaModel";
         $this->indexesOfTable = array("id", "nombre", "descripcion");
         $this->messages = [
             Model::SELECT => "La lista de <b>CATEGORÍAS</b> esta vacía.",

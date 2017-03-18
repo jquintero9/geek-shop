@@ -28,6 +28,7 @@ class FabricanteModel extends Model {
     public function __construct() {
         parent::__construct();
         $this->tableName = "fabricantes";
+        $this->className = "FabricateModel";
         $this->indexesOfTable = ["id", "nombre"];
         $this->messages = [
             Model::SELECT => "La lista de FABRICANTES está vacía.",

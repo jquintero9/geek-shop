@@ -22,10 +22,12 @@ class PaisModel extends Model {
     public function __construct() {
         parent::__construct();
         $this->tableName = "paises";
+        $this->className = "PaisModel";
         $this->indexesOfTable = ["id", "nombre"];
         $this->messages = [
             Model::SELECT => "La tabla PAÍSES está vacía.",
         ];
     }
+    
 
 }

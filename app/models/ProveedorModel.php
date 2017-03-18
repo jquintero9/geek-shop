@@ -25,6 +25,7 @@ class ProveedorModel extends Model {
     public function __construct() {
         parent::__construct();
         $this->tableName = "proveedores";
+        $this->className = "ProveedorModel";
         $this->indexesOfTable = [
             "id",
             "nit",

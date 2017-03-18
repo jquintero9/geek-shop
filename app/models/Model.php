@@ -18,6 +18,11 @@ class Model {
     const UPDATE = "update";
     const DELETE = "delete";
     const INSERT = "insert";
+    
+    //Estados para determinar el estado de la transacción con la base de datos.
+    const SUCCESS = 1;
+    const ERROR = 2;
+    const NO_RESULTS = 3;
 
     protected $tableName;
     protected $indexesOfTable;
@@ -25,13 +30,9 @@ class Model {
     protected $messages;
     protected $connection;
     
-    const SUCCESS = 1;
-    const ERROR = 2;
-    const NO_RESULTS = 3;
+    protected $className;
 
     public function __construct() {
-        //$this->tableName = $tableName;
-        //$this->indexesOfTable = $indexes;
         $this->response = array();
     }
     
@@ -40,13 +41,41 @@ class Model {
         $this->connection = new \Database();
     }
     
+    public function getObject($id) {
+        $this->connectDB();
+        $sentenceSQL = "SELECT * FROM $this->tableName WHERE id=:ID";
+        print("<br/>SQL: " . $sentenceSQL . "<br/>");
+        $stm = $this->connection->prepare($sentenceSQL);
+        $stm->bindParam(":ID", $id);
+        print_r($stm);
+        if ($stm->execute()) {
+            if ($stm->rowCount() > 0) {
+
+                return \json_encode($this->createObject($stm->fetchAll()));
+            }
+        }
+    }
+    
+    private function createObject($register) {
+        try {
+            $instance = "app\\models\\" . $this->className;
+            $object = new $instance;
+            print_r($register);
+            $object->id = $register[0]["id"];
+            $object->nombre = $register[0]["nombre"];
+            return $object;
+        } catch (Exception $exc) {
+            echo $exc->getTraceAsString();
+        }
+    }
+    
     /**
      * Selecciona uno o todos lo registros de una tabla.
      */
-    public function select() {
+    public function select($sql = null) {
         $this->connectDB();
         print("<br/>Nombre de la tabla: " . $this->tableName);
-        $sentenceSQL = "SELECT * FROM $this->tableName";
+        $sentenceSQL = ($sql != null) ? $sql : "SELECT * FROM $this->tableName";
         $stm = $this->connection->prepare($sentenceSQL);
         
         print($sentenceSQL);

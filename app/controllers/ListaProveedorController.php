@@ -26,7 +26,14 @@ class ListaProveedorController extends Controller {
     protected function get() {
     
         $proveedorModel = new ProveedorModel();
-        $this->response = json_decode($proveedorModel->select());
+        
+        $sql = "SELECT prov.id, prov.nit, prov.nombre, pais.nombre AS pais,
+                prov.telefono, prov.pagina_web
+                FROM proveedores AS prov
+                INNER JOIN paises AS pais
+                ON prov.pais = pais.id";
+        
+        $this->response = json_decode($proveedorModel->select($sql));
         
         $this->render();
     }

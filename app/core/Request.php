@@ -6,7 +6,7 @@ require_once CORE . "Url.php";
 require_once CONTROLLERS . "IndexController.php";
 
 use app\core\Url;
-use app\controllers\Index;
+use app\controllers\IndexController;
 
 /**
  * Esta clase se encarga de recibir y procesar la petición 
@@ -63,7 +63,7 @@ class Request {
             }
         }
         else {
-            return new Index();
+            return new IndexController();
         }
     }
     
