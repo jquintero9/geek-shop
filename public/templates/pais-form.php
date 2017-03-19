@@ -3,8 +3,7 @@
     <h2 class="form-title"><?=$this->context["form_title"]?></h2>
     <?php
     if (isset($this->response["state"])) {
-        if ($this->response["state"] == \app\models\Model::ERROR 
-                || $this->response["state"] == \app\models\Model::NO_RESULTS) {
+        if ($this->response["state"] == \app\models\Model::ERROR) {
             print("<div class='messages-container'><span>". $this->response["message"] . "</span></div>");
         }
     }

@@ -14,7 +14,7 @@ require_once MODELS . "Model.php";
 
 class PaisModel extends Model {
     
-    const INDEXES = ["id", "nombre", "Acciones"];
+    const INDEXES = ["id", "nombre"];
     
     public $id;
     public $nombre;
@@ -26,10 +26,12 @@ class PaisModel extends Model {
         $this->indexesOfTable = ["id", "nombre"];
         $this->editUrl = URL . "admin/pais/{id}/editar";
         $this->deleteUrl = URL . "admin/pais/{id}/eliminar";
+        $this->detailUrl = URL . "admin/pais/{id}/ver";
         $this->messages = [
             Model::SELECT => "La tabla PAÍSES está vacía.",
             Model::INSERT => "Se ha creado el registro <b>{objectName}</b> correctamente.",
             Model::UPDATE => "El país <b>{objectName}</b> se ha actualizado correctamente.",
+            Model::DELETE => "El país se ha eliminado correctamente.",
             Model::GET_OBJECT => "El país solicitado no éxiste."
         ];
     }

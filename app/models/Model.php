@@ -29,6 +29,7 @@ class Model {
     protected $indexesOfTable;
     protected $editUrl;
     protected $deleteUrl;
+    protected $detailUrl;
     protected $response;
     protected $messages;
     public $connection;
@@ -145,13 +146,17 @@ class Model {
     private function generateRows($statement) {
         foreach ($statement->fetchAll() as $register) {
             $this->response["data"] .= "<tr>";
+            
             foreach ($this->indexesOfTable as $index) {
-                $this->response["data"] .= "<td>" . utf8_encode($register[$index]) . "</td>";
+                if ($index == "id") {
+                    $detailUrl = str_replace("{id}", $register[$index], $this->detailUrl);
+                    $this->response["data"] .= "<td><a href=" . $detailUrl . ">" . $register[$index] . "</a></td>";
+                }
+                else {
+                    $this->response["data"] .= "<td>" . utf8_encode($register[$index]) . "</td>";
+                }
             }
-            $urlEdit = str_replace("{id}", $register["id"], $this->editUrl);
-            $urlDelete = str_replace("{id}", $register["id"], $this->deleteUrl);
-            $this->response["data"] .= "<td><a href=" . $urlEdit . ">editar</a></td>";
-            $this->response["data"] .= "<td><a href=" . $urlDelete . ">eliminar</a></td>";
+            
             $this->response["data"] .= "</tr>";
         }
     }
@@ -252,8 +257,83 @@ class Model {
     /**
      * Elimina uno más regsitro de la tabla.
      */
-    public function delete() {
-
+    public function delete($pk) {
+        $this->connectDB();
+        $SQL = "DELETE FROM $this->tableName WHERE id=:ID";
+        $stm = $this->connection->prepare($SQL);
+        $stm->bindParam(":ID", $pk);
+        
+        try {
+            $this->executeDelete($stm);
+        } catch (\PDOException $ex) {
+            $this->response["state"] = self::ERROR;
+            $this->response["message"] = "!!Ops ha ocurrido un problema al ejecutar la consulta SQL.";
+        }
+        
+        $stm = null;
+        $this->connection = null;
+        
+        return $this->response;
     }
-
+    
+    private function executeDelete($stm) {
+        if ($stm->execute()) {
+                $this->response["state"] = self::SUCCESS;
+                $_SESSION["message"] = $this->messages[self::DELETE];
+            }
+    }
+    
+    public function detail($pk) {
+        $this->connectDB();
+        $SQL = "SELECT * FROM $this->tableName WHERE id=:ID";
+        $stm = $this->connection->prepare($SQL);
+        $stm->bindParam(":ID", $pk);
+        
+        try {
+            $this->executeDetail($stm);
+        } catch (\PDOException $ex) {
+            $this->response["state"] = self::ERROR;
+            $this->response["message"] = "!!Ops ha ocurrido un problema al ejecutar la consulta SQL.";
+        }
+        
+        $stm = null;
+        $this->connection = null;
+        
+        return $this->response;
+    }
+    
+    private function executeDetail($stm) {
+        if ($stm->execute()) {
+            if ($stm->rowCount() > 0) {
+                $this->generateDetail($stm);
+                $this->response["state"] = self::SUCCESS;
+            }
+            else {
+                $this->response["state"] = self::NO_RESULTS;
+            }
+        }
+    }
+    
+    private function generateDetail($stm) {
+        $data = "";
+        $register = $stm->fetchAll()[0];
+        
+        foreach ($this->indexesOfTable as $index) {
+            $data .= "<div class='row-detail'>";
+            $data .= "<div><span><b>" . strtoupper($index) . "</b></span></div>";
+            $data .= "<div><span>" . utf8_encode($register[$index]) . "</span></div>";
+            $data .= "</div>";
+        }
+        
+        $urlEdit = str_replace("{id}", $register["id"], $this->editUrl);
+        $urlDelete = str_replace("{id}", $register["id"], $this->deleteUrl);
+        
+        $data .= "<div class='row-detail'>";
+        $data .= "<div><span><b>ACCIONES</b></span></div>";
+        $data .= "<div><a href=" . $urlEdit . ">editar</a>";
+        $data .= "<a href=" . $urlDelete . ">eliminar</a></div>";
+        $data .= "</div>";
+        
+        $this->response["data"] = $data;
+    }
 }

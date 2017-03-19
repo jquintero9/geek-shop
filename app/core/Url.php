@@ -24,7 +24,9 @@ class Url {
         "ListaPais" => "/admin\/pais$/",
         "CrearPais" => "/admin\/pais\/crear$/",
         "CrearFabricante" => "/admin\/fabricante\/crear$/",
+        "EliminarPais" => "/admin\/pais\/(?P<id>[0-9]+)\/eliminar$/",
         "EditarPais" => "/admin\/pais\/(?P<id>[0-9]+)\/editar$/",
+        "DetallePais" => "/admin\/pais\/(?P<id>[0-9]+)\/ver$/",
     ];
     
 }
