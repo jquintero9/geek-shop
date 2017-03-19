@@ -36,7 +36,7 @@ class ListaProductoController extends Controller {
                     INNER JOIN categorias AS catg
                     ON catg.id = prod.categoria;";
         
-        $this->response = json_decode($productoModel->select($sql));
+        $this->response = $productoModel->select($sql);
         $this->render();
     }
     

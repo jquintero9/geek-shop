@@ -10,55 +10,54 @@ use app\controllers\Controller;
 use app\models\PaisModel;
 use app\forms\PaisForm;
 
+
 /**
- * Description of CrearPaisController
+ * Description of EditarPaisController
  *
  * @author JHON
  */
-class CrearPaisController extends Controller {
+class EditarPaisController extends Controller {
+    
+    private $paisModel;
     
     public function __construct() {
-        parent::__construct("Crear País");
+        parent::__construct("Editar País");
         $this->templateName = "admin.php";
         $this->context["action"] = "pais-form.php";
-        $this->context["form_title"] = "Crear País";
-        $this->context["id_form"] = "crear-pais-form";
-        $this->context["submit_value"] = "Crear";
+        $this->context["form_title"] = "Editar País";
+        $this->context["id_form"] = "editar-pais-form";
+        $this->context["submit_value"] = "Editar";
+        $this->paisModel = new PaisModel();
     }
     
     protected function get() {
+        $this->response = $this->paisModel->getObject($this->pk);
+        
+        if ($this->response["state"] == PaisModel::SUCCESS) {
+            $this->context["form"] = $this->response["object"];
+        }
         $this->render();
     }
     
     protected function post() {
         $nombre = trim(filter_input(INPUT_POST, "nombre", FILTER_SANITIZE_STRING));
-        
-        //Se obtienen los datos que se validarán en el formulario.
         $POST = ["nombre" => $nombre];
-        //Se crea la instancia del modelo país.
+        
         $form = new PaisForm($POST);
-        //Se procesa el formulairo.
+        
         $form->processForm();
         
-        //Si los datos son validados se procede a insertar el registro.
         if ($form->isValid) {
-            print("El formulario es válido");
-            $paisModel = new PaisModel();
-            $SQL = "INSERT INTO paises(id, nombre) VALUES (NULL, :NOMBRE)";
+            $SQL = "UPDATE paises SET nombre=:NOMBRE WHERE id=:ID";
             $bindParams = ["nombre" => ":NOMBRE"];
+            $this->response = $this->paisModel->update($SQL, $bindParams, $POST, $this->pk);
             
-            $this->response = $paisModel->insert($SQL, $bindParams, $POST);
-            
-            //Si la transacción tuvo éxito, entonces se redirecciona a la lista de países.
             if ($this->response["state"] == PaisModel::SUCCESS) {
                 header("Location: " . URL . "admin/pais");
             }
         }
         else {
-            print("El formulario NO  es válido");
-            print_r($form->response);
             $this->context["form"] = $POST;
-            print_r($this->context["form"]);
             $this->response = $form->getResponse();
         }
         

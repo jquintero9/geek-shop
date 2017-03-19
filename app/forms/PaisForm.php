@@ -16,7 +16,7 @@ class PaisForm extends Form {
     public function __construct($post) {
         parent::__construct();
         $this->fields = $post;
-        $this->regex = ["nombre" => "/[a-zA-ZáéíóúÁÉÍÓÚ\s]+$/"];
+        $this->regex = ["nombre" => "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/"];
         
         $this->infoFields = [
             "nombre" => [

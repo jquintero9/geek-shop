@@ -5,10 +5,12 @@ namespace app\core;
 require_once CORE . "Url.php";
 require_once CONTROLLERS . "IndexController.php";
 require_once CONTROLLERS . "ForbiddenController.php";
+require_once CONTROLLERS . "PageNotFoundController.php";
 
 use app\core\Url;
 use app\controllers\IndexController;
 use app\controllers\ForbiddenController;
+use app\controllers\PageNotFoundController;
 
 /**
  * Esta clase se encarga de recibir y procesar la petición 
@@ -52,11 +54,16 @@ class Request {
                     print($controller . "<br />");
                     $controller .= "Controller";
                     
-                    self::setID($coincidences);
-                    
-                    return self::redirect($controller);
+                    return self::redirect($controller, $coincidences);
                 }
             }
+            
+            /*
+             * Si la URL solicitada no concuerda con ningún patrón, entonces
+             * se instancia el controlador de Página no encontrada.
+             */
+            return new PageNotFoundController();
+            
         }
         else {
             return new IndexController();
@@ -67,14 +74,22 @@ class Request {
      * contrario se bloquea el acceso.
      * Se Crea y se retorna la instancia del controlador
      * al cual pertenece la URL solicitada. */
-    private function redirect($controller) {
+    private function redirect($controller, $coincidences) {
         if (isset($_SESSION["user"]) || ($controller == "LoginController")) {
                     
             require_once CONTROLLERS . $controller . ".php";
 
-            $instacne = 'app\\controllers' . DS . $controller;
+            $instance = 'app\\controllers' . DS . $controller;
+            
+            $newController = new $instance;
+            
+            //Se comprueba que el nuevo controlador tenga el método setPK()
+            if (method_exists($newController, "setPK")) {
+                
+                $newController->setPK(self::setID($coincidences));
+            }
 
-            return new $instacne;
+            return $newController;
         }
         else {
             return new ForbiddenController();
@@ -87,7 +102,8 @@ class Request {
     private function setID($coincidences) {
         if (isset($coincidences["id"])) {
             \print_r($coincidences["id"]);
-            $_POST['pk'] = $coincidences["id"];
+            //$_POST['pk'] = $coincidences["id"];
+            return $coincidences["id"];
         }
     }
 

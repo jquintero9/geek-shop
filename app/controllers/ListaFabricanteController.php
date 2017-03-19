@@ -26,7 +26,7 @@ class ListaFabricanteController extends Controller {
     
     protected function get() {
         $fabricanteModel = new FabricanteModel();
-        $this->response = json_decode($fabricanteModel->select());
+        $this->response = $fabricanteModel->select();
         
         $this->render();
     }

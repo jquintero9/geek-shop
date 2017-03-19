@@ -60,7 +60,6 @@ class Form {
         print_r($this->response);
         if (count($this->response) == 0) {
             $this->isValid = true;
-            $this->response = json_encode($this->response);
         }
     }
     
@@ -71,7 +70,7 @@ class Form {
      * @param type $value Valor contenido en el campo.
      */
     private function checkRegex($key, $value) {
-        if (!preg_match($this->regex[$key], $value)) {
+        if (!preg_match_all($this->regex[$key], $value)) {
             $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::REGEX];
         }
     }
@@ -103,7 +102,7 @@ class Form {
     }
     
     public function getResponse() {
-        return json_encode($this->response);
+        return $this->response;
     }
 
 }

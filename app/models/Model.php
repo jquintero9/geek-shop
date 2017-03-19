@@ -18,6 +18,7 @@ class Model {
     const UPDATE = "update";
     const DELETE = "delete";
     const INSERT = "insert";
+    const GET_OBJECT = "get_object";
     
     //Estados para determinar el estado de la transacción con la base de datos.
     const SUCCESS = 1;
@@ -26,6 +27,8 @@ class Model {
 
     protected $tableName;
     protected $indexesOfTable;
+    protected $editUrl;
+    protected $deleteUrl;
     protected $response;
     protected $messages;
     public $connection;
@@ -50,11 +53,29 @@ class Model {
         print("<br/>SQL: " . $sentenceSQL . "<br/>");
         $stm = $this->connection->prepare($sentenceSQL);
         $stm->bindParam(":ID", $id);
-        print_r($stm);
+        
+        try {
+            $this->executeGetObject($stm);
+        } catch (\PDOException $ex) {
+            $this->response["state"] = self::ERROR;
+            $this->response["message"] = "Ha ocurrido un error al ejecutar la consulta SQL";
+        }
+        
+        $stm = null;
+        $this->connection = null;
+        
+        return $this->response;
+    }
+    
+    private function executeGetObject($stm) {
         if ($stm->execute()) {
             if ($stm->rowCount() > 0) {
-
-                return \json_encode($this->createObject($stm->fetchAll()));
+                $this->response["state"] = self::SUCCESS;
+                $this->response["object"] = $stm->fetchAll()[0];
+            }
+            else {
+                $this->response["state"] = self::NO_RESULTS;
+                $this->response["message"] = $this->messages[self::GET_OBJECT];
             }
         }
     }
@@ -90,7 +111,7 @@ class Model {
         }
         
         $this->response["data"] = $this->response["data"];
-        return json_encode($this->response);
+        return $this->response;
     }
     
     /**
@@ -116,7 +137,8 @@ class Model {
     
     /**
      * Genera el código HTML que contiene los datos obtenidos en la
-     * consulta.
+     * consulta para mostrarlos en una tabla.
+     * Se genera los botones de acciones eliminar y editar.
      * 
      * @param type $statement instancia de la consulta SQL.
      */
@@ -126,6 +148,10 @@ class Model {
             foreach ($this->indexesOfTable as $index) {
                 $this->response["data"] .= "<td>" . utf8_encode($register[$index]) . "</td>";
             }
+            $urlEdit = str_replace("{id}", $register["id"], $this->editUrl);
+            $urlDelete = str_replace("{id}", $register["id"], $this->deleteUrl);
+            $this->response["data"] .= "<td><a href=" . $urlEdit . ">editar</a></td>";
+            $this->response["data"] .= "<td><a href=" . $urlDelete . ">eliminar</a></td>";
             $this->response["data"] .= "</tr>";
         }
     }
@@ -162,7 +188,7 @@ class Model {
         $stm = null;
         $this->connection = null;
         
-        return json_encode($this->response);
+        return $this->response;
     }
     
     /**
@@ -188,8 +214,39 @@ class Model {
     /**
      * Edita un registro de la tabla.
      */
-    public function update() {
+    public function update($SQL, $bindParams, $POST, $pk) {
+        $this->connectDB();
         
+        $stm = $this->connection->prepare($SQL);
+        
+        foreach ($POST as $key => $value) {
+            $stm->bindParam($bindParams[$key], $value);
+        }
+        
+        $stm->bindParam(":ID", $pk);
+        
+        try {
+            $this->executeUpdate($stm, $POST);
+        } catch (\PDOException $ex) {
+            $this->response["state"] = self::ERROR;
+            $this->response["messages"] = "Ha ocurrido un erro al ejecutar la consulta SQL.";
+        }
+        
+        return $this->response;
+    }
+    
+    private function executeUpdate($stm, $POST) {
+        if ($stm->execute()) {
+            $this->response["state"] = self::SUCCESS;
+            $message = $this->messages[self::UPDATE];
+            $this->messages[self::UPDATE] = str_replace(
+                    "{objectName}",
+                    $POST["nombre"],
+                    $message
+            );
+            
+            $_SESSION["message"] = $this->messages[self::UPDATE];
+        }
     }
     
     /**

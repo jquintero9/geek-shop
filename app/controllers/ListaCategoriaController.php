@@ -24,7 +24,7 @@ class ListaCategoriaController extends Controller {
 
     protected function get() {
         $categoriaModel = new CategoriaModel();
-        $this->response = json_decode($categoriaModel->select());
+        $this->response = $categoriaModel->select();
         print_r($this->response);
         $this->render();
         

@@ -29,6 +29,7 @@ class CrearFabricanteController extends Controller {
     protected function post() {
         $nombre = trim(filter_input(INPUT_POST, "nombre", FILTER_SANITIZE_STRING));
         
+        
     }
     
 }

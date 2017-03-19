@@ -16,7 +16,7 @@
         ?>
         <div><label for="id_nombre"><b>Nombre: </b></label></div>
         <div class="input-container">
-            <input id="id_nombre" type="text" name="nombre" maxlength="30" required />
+            <input id="id_nombre" type="text" value="<?php if (isset($this->context["form"])) {print($this->context["form"]["nombre"]);} ?>" name="nombre" maxlength="30" required />
         </div>
         <div class="input-container">
             <input type="submit" value="Crear" />

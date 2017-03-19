@@ -37,15 +37,6 @@ abstract class Controller {
         
         /* Se obtiene el método por el cual se realizo la petición http. */
         $this->requestMethod = filter_input(INPUT_SERVER, "REQUEST_METHOD");
-        
-        /* Si el controlador requiere una llave primaria (pk), entonce esta
-         * debe estar en la variable global $_POST. */
-        if(filter_input(INPUT_POST, "pk")) {
-            $this->pk = filter_input(INPUT_POST, "pk");
-        }
-        else {
-            print("No se envió la pk.");
-        }
     }
     
     /**
@@ -85,6 +76,10 @@ abstract class Controller {
     protected function render() {
         $this->context["content"] = $this->templateName;
         include_once TEMPLATES . "base.php";
+    }
+    
+    public function setPK($pk) {
+        $this->pk = $pk;
     }
     
 }

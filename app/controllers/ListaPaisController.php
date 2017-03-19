@@ -28,9 +28,8 @@ class ListaPaisController extends Controller {
 
     protected function get() {
         $paisModel = new PaisModel();
-        $this->response = json_decode($paisModel->select());
-        $pais = $paisModel->getObject(1);
-        print_r($pais);
+        $this->response = $paisModel->select();
+        
         $this->render();
     }
 

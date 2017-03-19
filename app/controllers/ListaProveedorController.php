@@ -32,7 +32,7 @@ class ListaProveedorController extends Controller {
                 INNER JOIN paises AS pais
                 ON prov.pais = pais.id";
         
-        $this->response = json_decode($proveedorModel->select($sql));
+        $this->response = $proveedorModel->select($sql);
         
         $this->render();
     }
