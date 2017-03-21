@@ -1,6 +1,7 @@
 <?php
 
 
+
 session_start();
 
 define('DS', DIRECTORY_SEPARATOR);
@@ -36,12 +37,27 @@ require_once MODELS . "Pais.php";
 //use app\core\Request;
 use app\models\Pais;
 
-$pais = Pais::getObject("Pais", "paises", 3);
-$pais2 = Pais::getObject("Pais", "paises", 9);
+$pais = Pais::get(25);
+
+$pais2 = Pais::get(4);
+$paises = Pais::all();
+
+/*$pais3 = new Pais("Argentina");
+if ($pais3->save()) {
+    print("Se ha guardado con éxito el país <b>".$pais3->nombre."</b>");
+}
+*/
 
 print($pais);
+print("<br/>");
 print($pais2);
 
+print("<br/>");
+
+foreach ($paises as $p) {
+    print("<br/>");
+    print($p);
+}
 
 //$controller = Request::getController(filter_input(INPUT_GET, "url"));
 
