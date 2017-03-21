@@ -4,44 +4,40 @@ namespace app\controllers;
 
 require_once CONTROLLERS . "Controller.php";
 require_once CONTROLLERS . "PageNotFoundController.php";
-require_once MODELS . "PaisModel.php";
-require_once FORMS . "PaisForm.php";
+require_once MODELS . "FabricanteModel.php";
+require_once FORMS . "FabricanteForm.php";
 
-use app\controllers\Controller;
-use app\controllers\PageNotFoundController;
-use app\models\PaisModel;
-use app\forms\PaisForm;
-
+use app\models\FabricanteModel;
+use app\forms\FabricanteForm;
 
 /**
- * Description of EditarPaisController
+ * Description of EditarFabricanteController
  *
  * @author JHON
  */
-class EditarPaisController extends Controller {
+class EditarFabricanteController extends Controller {
     
-    private $paisModel;
+    private $fabricanteModel;
     
     public function __construct() {
-        parent::__construct("Editar País");
+        parent::__construct("Editar Fabricante");
         $this->templateName = "admin.php";
-        $this->redirectSuccess = URL . "admin/pais";
-        $this->context["action"] = "pais-form.php";
-        $this->context["form_title"] = "Editar País";
-        $this->context["id_form"] = "edit-pais-form";
+        $this->context["action"] = "fabricante-form.php";
+        $this->context["form_title"] = "Editar Fabricante";
         $this->context["submit_value"] = "Editar";
-        $this->paisModel = new PaisModel();
+        $this->context["id_form"] = "edit-fabricante-form";
+        $this->fabricanteModel = new FabricanteModel();
     }
     
     protected function get() {
-        $this->response = $this->paisModel->getObject($this->pk);
+        $this->response = $this->fabricanteModel->getObject($this->pk);
         
         if (isset($this->response["state"])) {
-            if ($this->response["state"] == PaisModel::SUCCESS) {
+            if ($this->response["state"] == FabricanteModel::SUCCESS) {
                 $this->context["form"] = $this->response["object"];
                 $this->render();
             }
-            elseif ($this->response["state"] == PaisModel::NO_RESULTS) {
+            elseif ($this->response["state"] == FabricanteModel::NO_RESULTS) {
                 $error404 = new PageNotFoundController();
                 $error404->httpRequestProcess();
             }
@@ -51,21 +47,20 @@ class EditarPaisController extends Controller {
     protected function post() {
         $nombre = trim(filter_input(INPUT_POST, "nombre", FILTER_SANITIZE_STRING));
         $POST = ["nombre" => $nombre];
-        
-        $form = new PaisForm($POST);
-        
+        $form = new FabricanteForm($POST);
         $form->processForm();
         
         if ($form->isValid) {
-            $SQL = "UPDATE paises SET nombre=:NOMBRE WHERE id=:ID";
+            $SQL = "UPDATE fabricantes SET nombre=:NOMBRE WHERE id=:ID";
             $bindParams = ["nombre" => ":NOMBRE"];
-            $this->response = $this->paisModel->update($SQL, $bindParams, $POST, $this->pk);
+            $this->response = $this->fabricanteModel->update($SQL, $bindParams, $POST, $this->pk);
+            $this->redirectSuccess = URL . "admin/fabricante/" . $this->pk . "/ver";
             $this->processResponse();
         }
         else {
             $this->context["form"] = $POST;
             $this->response = $form->getResponse();
             $this->render();
-        }  
+        }
     }
 }

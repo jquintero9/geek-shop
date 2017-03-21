@@ -50,17 +50,54 @@ class Form {
      * máximo de caracteres permitidos y que cumpla con la expresión regular
      * que fue asignada.
      */
-    public function processForm() {
+    public function processForm($foreignKeyInfo = null) {
         $this->response = [];
         foreach ($this->fields as $key => $value) {
-            if ($this->checkLength($key, $value)) {
-                $this->checkRegex($key, $value);
+            if ($foreignKeyInfo) { 
+                if (array_key_exists($key, $foreignKeyInfo)) {
+                    print("<br/>antes del continue");
+                    $table = $foreignKeyInfo[$key]["table"];
+                    $fk = $foreignKeyInfo[$key]["fk"];
+                    
+                    require_once CORE . "Database.php";
+                    
+                    $conn = new \Database();
+                    $SQL = "SELECT id FROM $table WHERE id=:FK";
+                    $stm = $conn->prepare($SQL);
+                    $stm->bindParam(":FK", $fk);
+                    
+                    
+                    try {
+                        if ($stm->execute()) {
+                            if ($stm->rowCount() == 0) {
+                                $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::REGEX];
+                            }
+                        }
+                    }
+                    catch (PDOException $e) {
+                        $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::VOID];
+                    }
+                    
+                    $stm->closeCursor();
+                    
+                    $conn = null;
+                    
+                    continue;
+                }
             }
+            print("<br/>despues del continue: ". $key);
+            $this->validateFields($key, $value);
         }
-        print_r($this->response);
+        
         if (count($this->response) == 0) {
             $this->isValid = true;
         }
+    }
+    
+    private function validateFields($key, $value) {
+        if ($this->checkLength($key, $value)) {
+            $this->checkRegex($key, $value);
+        }       
     }
     
     /**

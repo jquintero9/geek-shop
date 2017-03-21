@@ -22,6 +22,8 @@ class PageNotFoundController extends Controller {
         $this->render();
     }
     
-    protected function post() {}
+    protected function post() {
+        $this->render();
+    }
     
 }

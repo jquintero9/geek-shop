@@ -30,7 +30,11 @@ class ListaPaisController extends Controller {
         $paisModel = new PaisModel();
         $this->response = $paisModel->select();
         
-        $this->render();
+        if (isset($this->response["state"])) {
+            if ($this->response["state"] == PaisModel::SUCCESS) {
+                $this->render();
+            }
+        }
     }
 
     protected function post() {}

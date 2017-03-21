@@ -2,6 +2,11 @@
 
 namespace app\controllers;
 
+require_once CONTROLLERS . "PageNotFoundController.php";
+require_once CONTROLLERS . "ServerErrorController.php";
+
+use app\controllers\ServerErrorController;
+
 /**
  * Esta clase representa los controladores de la aplicación.
  * La función de cada controlador es comunicarse con el modelo (Base de Datos)
@@ -18,7 +23,9 @@ abstract class Controller {
     protected $context;
     protected $response;
     public $indexes;
-    
+    protected $redirectSuccess;
+
+
     /**
      * Constructor de la clase Controller.
      * @param String $title es el titulo del documento.
@@ -80,6 +87,27 @@ abstract class Controller {
     
     public function setPK($pk) {
         $this->pk = $pk;
+    }
+    
+    public function processResponse() {
+        if (isset($this->response["state"])) {
+            if ($this->response["state"] == \app\models\Model::SUCCESS) {
+                if ($this->redirectSuccess) {
+                    header("Location: " . $this->redirectSuccess);
+                }
+                else {
+                    $this->render();
+                }
+            }
+            elseif ($this->response["state"] == \app\models\Model::NO_RESULTS) {
+                $error404 = new PageNotFoundController();
+                $error404->httpRequestProcess();
+            }
+        }
+        else {
+            $error500 = new ServerErrorController();
+            $error500->httpRequestProcess();
+        }
     }
     
 }

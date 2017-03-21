@@ -32,7 +32,6 @@ class PaisModel extends Model {
             Model::INSERT => "Se ha creado el registro <b>{objectName}</b> correctamente.",
             Model::UPDATE => "El país <b>{objectName}</b> se ha actualizado correctamente.",
             Model::DELETE => "El país se ha eliminado correctamente.",
-            Model::GET_OBJECT => "El país solicitado no éxiste."
         ];
     }
 

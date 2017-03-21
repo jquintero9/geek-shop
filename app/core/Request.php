@@ -50,8 +50,6 @@ class Request {
                  */
                 $coincidences = array();
                 if (preg_match($urlPattern, $url, $coincidences)) {
-                    
-                    print($controller . "<br />");
                     $controller .= "Controller";
                     
                     return self::redirect($controller, $coincidences);
@@ -101,8 +99,6 @@ class Request {
      * para que luego el controlador pueda tener acceso a ella desde allí. */
     private function setID($coincidences) {
         if (isset($coincidences["id"])) {
-            \print_r($coincidences["id"]);
-            //$_POST['pk'] = $coincidences["id"];
             return $coincidences["id"];
         }
     }

@@ -23,6 +23,7 @@ class EliminarPaisController extends Controller {
     public function __construct() {
         parent::__construct("Eliminar País");
         $this->templateName = "admin.php";
+        $this->redirectSuccess = URL . "admin/pais";
         $this->context["action"] = "delete-form.php";
         $this->context["url_back"] = URL . "admin/pais";
         $this->paisModel = new PaisModel();
@@ -48,17 +49,8 @@ class EliminarPaisController extends Controller {
     }
     
     protected function post() {
-        print("Nombre: ".$this->nombrePais);
         $this->response = $this->paisModel->delete($this->pk, $this->nombrePais);
-        
-        if (isset($this->response["state"])) {
-            if ($this->response["state"] == PaisModel::SUCCESS) {
-                header("Location: " . URL . "admin/pais");
-            }
-            else {
-                $this->render();
-            }
-        }
+        $this->processResponse();
     }
     
 }

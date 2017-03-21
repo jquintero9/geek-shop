@@ -3,10 +3,6 @@ if (isset($_SESSION["message"])) {
     print("<div class='messages-container'><span>" . $_SESSION["message"] . "</span></div>");
     unset($_SESSION["message"]);
 }
-
-if ($this->response["state"] == \app\models\Model::ERROR) {
-    print("<div class='messages-container'><span>" . $this->response->message . "</span></div>");
-}
 ?>
 <table>
     <thead>

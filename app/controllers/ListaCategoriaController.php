@@ -25,13 +25,9 @@ class ListaCategoriaController extends Controller {
     protected function get() {
         $categoriaModel = new CategoriaModel();
         $this->response = $categoriaModel->select();
-        print_r($this->response);
         $this->render();
-        
     }
 
-    protected function post() {
-        print("El método fue por POST");
-    }
+    protected function post() {}
 
 }

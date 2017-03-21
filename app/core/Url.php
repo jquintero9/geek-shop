@@ -24,9 +24,13 @@ class Url {
         "ListaPais" => "/admin\/pais$/",
         "CrearPais" => "/admin\/pais\/crear$/",
         "CrearFabricante" => "/admin\/fabricante\/crear$/",
+        "CrearProveedor" => "/admin\/proveedor\/crear$/",
+        "EditarFabricante" => "/admin\/fabricante\/(?P<id>[0-9]+)\/editar$/",
         "EliminarPais" => "/admin\/pais\/(?P<id>[0-9]+)\/eliminar$/",
+        "EliminarFabricante" => "/admin\/fabricante\/(?P<id>[0-9]+)\/eliminar$/",
         "EditarPais" => "/admin\/pais\/(?P<id>[0-9]+)\/editar$/",
         "DetallePais" => "/admin\/pais\/(?P<id>[0-9]+)\/ver$/",
+        "DetalleFabricante" => "/admin\/fabricante\/(?P<id>[0-9]+)\/ver$/",
     ];
     
 }

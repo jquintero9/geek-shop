@@ -18,12 +18,10 @@ class Model {
     const UPDATE = "update";
     const DELETE = "delete";
     const INSERT = "insert";
-    const GET_OBJECT = "get_object";
     
     //Estados para determinar el estado de la transacción con la base de datos.
     const SUCCESS = 1;
-    const ERROR = 2;
-    const NO_RESULTS = 3;
+    const NO_RESULTS = 2;
 
     protected $tableName;
     protected $indexesOfTable;
@@ -37,7 +35,7 @@ class Model {
     protected $className;
 
     public function __construct() {
-        $this->response = array();
+        $this->response = [];
     }
     
     /**
@@ -51,16 +49,12 @@ class Model {
     public function getObject($id) {
         $this->connectDB();
         $sentenceSQL = "SELECT * FROM $this->tableName WHERE id=:ID";
-        print("<br/>SQL: " . $sentenceSQL . "<br/>");
         $stm = $this->connection->prepare($sentenceSQL);
         $stm->bindParam(":ID", $id);
         
         try {
             $this->executeGetObject($stm);
-        } catch (\PDOException $ex) {
-            $this->response["state"] = self::ERROR;
-            $this->response["message"] = "Ha ocurrido un error al ejecutar la consulta SQL";
-        }
+        } catch (\PDOException $e) {}
         
         $stm = null;
         $this->connection = null;
@@ -76,7 +70,6 @@ class Model {
             }
             else {
                 $this->response["state"] = self::NO_RESULTS;
-                $this->response["message"] = $this->messages[self::GET_OBJECT];
             }
         }
     }
@@ -85,7 +78,7 @@ class Model {
         try {
             $instance = "app\\models\\" . $this->className;
             $object = new $instance;
-            print_r($register);
+            
             $object->id = $register[0]["id"];
             $object->nombre = $register[0]["nombre"];
             return $object;
@@ -99,17 +92,12 @@ class Model {
      */
     public function select($sql = null) {
         $this->connectDB();
-        
         $sentenceSQL = ($sql != null) ? $sql : "SELECT * FROM $this->tableName";
-        
         $stm = $this->connection->prepare($sentenceSQL);
         
         try {
             $this->executeSelect($stm);
-        } catch (\PDOException $e) {
-            $this->response["state"] = self::ERROR;
-            $this->response["message"] = "Ocurrio un error al ejecutar la consulta.";
-        }
+        } catch (\PDOException $e) {}
         
         $this->response["data"] = $this->response["data"];
         return $this->response;
@@ -155,46 +143,105 @@ class Model {
                 else {
                     $this->response["data"] .= "<td>" . utf8_encode($register[$index]) . "</td>";
                 }
-            }
-            
+            }   
             $this->response["data"] .= "</tr>";
         }
     }
     
     /**
      * Inserta un registro en la base de datos.
-     * 
      * @param type $SQL consulta SQL de tipo INSERT INTO.
-     * @param type $binParams lista de valores que se deben reemplazar
+     * @param type $bindParams lista de valores que se deben reemplazar
      * en la consulta SQL.
      * @param type $POST son los datos que se van a insertar.
      * @return type json este objeto contiene información acerca del resultado
      * de la consulta.
      */
-    public function insert($SQL, $binParams, $POST) {
+    public function insert($SQL, $bindParams, $POST) {
         //Se crea una conexión a la base de datos.
         $this->connectDB();
-        
         $stm = $this->connection->prepare($SQL);
-        
         //Se reemplazan los bindParam en la consulta SQL.
         foreach ($POST as $key => $value) {
-            $stm->bindParam($binParams[$key], $value);
+            print("bind: ". $bindParams[$key] . " value: ". $value . "<br/>");
+            $stm->bindValue($bindParams[$key], $value, \PDO::PARAM_STR);
         }
-        
+
+        $this->executeInsert($stm, $POST);
         try {
-            $this->executeInsert($stm, $POST);
-        } catch (\PDOException $ex) {
-            $this->response["state"] = self::ERROR;
-            $this->response["message"] = "Ocurrio un error al insertar el registro";
-        }
-        
+            //$this->executeInsert($stm, $POST);
+        } catch (\PDOException $ex) {$ex->getTrace();}
         
         $stm = null;
         $this->connection = null;
         
         return $this->response;
     }
+    
+    public function in($SQL) {
+        //Se crea una conexión a la base de datos.
+        $this->connectDB();
+        $stm = $this->connection->prepare($SQL);
+        
+        if ($stm->execute()) {
+            $message = $this->messages[self::INSERT];
+
+            $this->messages[self::INSERT] = str_replace(
+                    "{objectName}", 
+                    "prove",
+                    $message);
+
+            $this->response["state"] = self::SUCCESS;
+            $_SESSION["message"] = $this->messages[self::INSERT];
+        }
+        
+        try {
+            //$this->executeInsert($stm, $POST);
+        } catch (\PDOException $ex) {$ex->getTrace();}
+        
+        $stm->closeCursor();
+        $this->connection = null;
+        
+        return $this->response;
+    }
+    
+    public static function exists($pk, $tableName) {
+        $exists = false;
+        //Se crea una conexión a la base de datos.
+        require_once CORE . "Database.php";
+        $conn = new \Database();
+        
+        $SQL = "SELECT * FROM $tableName WHERE id=:PK";
+        $stm = $conn->prepare($SQL);
+        //Se reemplazan los bindParam en la consulta SQL.
+        $stm->bindParam(":PK", $pk);
+        
+        $response = [];
+        try {
+            if ($stm->execute()) {
+                if ($stm->rowCount() > 0) {
+                    $response["state"] = self::SUCCESS;
+                }
+                else {
+                    $response["state"] = self::NO_RESULTS;
+                    $response["message"] = "La opción seleccionada no es válida.";
+                }
+            }
+        
+        }
+        catch (\PDOException $e) {
+            $response["state"] = self::NO_RESULTS;
+            $response["message"] = "La opción seleccionada no es válida.";
+        }
+        
+        
+        $stm->closeCursor();
+        $conn = null;
+        
+        return $response;
+    }
+    
+    
     
     /**
      * Ejecuta la consulta de tipo INSERT INTO.
@@ -221,7 +268,6 @@ class Model {
      */
     public function update($SQL, $bindParams, $POST, $pk) {
         $this->connectDB();
-        
         $stm = $this->connection->prepare($SQL);
         
         foreach ($POST as $key => $value) {
@@ -229,19 +275,19 @@ class Model {
         }
         
         $stm->bindParam(":ID", $pk);
+        print_r($stm);
         
         try {
             $this->executeUpdate($stm, $POST);
-        } catch (\PDOException $ex) {
-            $this->response["state"] = self::ERROR;
-            $this->response["messages"] = "Ha ocurrido un erro al ejecutar la consulta SQL.";
-        }
+        } catch (\PDOException $ex) {}
         
         return $this->response;
     }
     
     private function executeUpdate($stm, $POST) {
+        
         if ($stm->execute()) {
+            
             $this->response["state"] = self::SUCCESS;
             $message = $this->messages[self::UPDATE];
             $this->messages[self::UPDATE] = str_replace(
@@ -265,10 +311,7 @@ class Model {
         
         try {
             $this->executeDelete($stm);
-        } catch (\PDOException $ex) {
-            $this->response["state"] = self::ERROR;
-            $this->response["message"] = "!!Ops ha ocurrido un problema al ejecutar la consulta SQL.";
-        }
+        } catch (\PDOException $ex) {}
         
         $stm = null;
         $this->connection = null;
@@ -291,10 +334,7 @@ class Model {
         
         try {
             $this->executeDetail($stm);
-        } catch (\PDOException $ex) {
-            $this->response["state"] = self::ERROR;
-            $this->response["message"] = "!!Ops ha ocurrido un problema al ejecutar la consulta SQL.";
-        }
+        } catch (\PDOException $ex) {}
         
         $stm = null;
         $this->connection = null;
@@ -335,5 +375,7 @@ class Model {
         $data .= "</div>";
         
         $this->response["data"] = $data;
+        //print_r($this->response["data"]);
     }
+    
 }

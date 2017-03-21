@@ -8,6 +8,7 @@
             <li><a href="<?=URL_PROVEEDORES?>">Proveedores</a></li>
             <li><a href="<?=URL_CREAR_PAIS?>">Crear País</a></li>
             <li><a href="<?=URL_CREAR_FABRICANTE?>">Crear Fabricante</a></li>
+            <li><a href="<?=URL_CREAR_PROVEEDOR?>">Crear Proveedor</a></li>
         </ul>
     </nav>
 </div>

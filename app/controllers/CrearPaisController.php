@@ -3,10 +3,12 @@
 namespace app\controllers;
 
 require_once CONTROLLERS . "Controller.php";
+require_once CONTROLLERS . "ServerErrorController.php";
 require_once MODELS . "PaisModel.php";
 require_once FORMS . "PaisForm.php";
 
-use app\controllers\Controller;
+//use app\controllers\Controller;
+use app\controllers\ServerErrorController;
 use app\models\PaisModel;
 use app\forms\PaisForm;
 
@@ -20,9 +22,10 @@ class CrearPaisController extends Controller {
     public function __construct() {
         parent::__construct("Crear País");
         $this->templateName = "admin.php";
+        $this->redirectSuccess = URL . "admin/pais";
         $this->context["action"] = "pais-form.php";
         $this->context["form_title"] = "Crear País";
-        $this->context["id_form"] = "crear-pais-form";
+        $this->context["id_form"] = "create-pais-form";
         $this->context["submit_value"] = "Crear";
     }
     
@@ -42,7 +45,6 @@ class CrearPaisController extends Controller {
         
         //Si los datos son validados se procede a insertar el registro.
         if ($form->isValid) {
-            print("El formulario es válido");
             $paisModel = new PaisModel();
             $SQL = "INSERT INTO paises(id, nombre) VALUES (NULL, :NOMBRE)";
             $bindParams = ["nombre" => ":NOMBRE"];
@@ -50,19 +52,15 @@ class CrearPaisController extends Controller {
             $this->response = $paisModel->insert($SQL, $bindParams, $POST);
             
             //Si la transacción tuvo éxito, entonces se redirecciona a la lista de países.
-            if ($this->response["state"] == PaisModel::SUCCESS) {
-                header("Location: " . URL . "admin/pais");
-            }
+            $this->processResponse();
         }
         else {
-            print("El formulario NO  es válido");
-            print_r($form->response);
+            /*Si los datos no son válidos entonces se vuelve a mostrar el 
+              formulario con los mensajes correspondientes.*/
             $this->context["form"] = $POST;
-            print_r($this->context["form"]);
             $this->response = $form->getResponse();
+            $this->render();
         }
-        
-        $this->render();
     }
     
 }

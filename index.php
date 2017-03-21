@@ -1,5 +1,6 @@
 <?php
 
+
 session_start();
 
 define('DS', DIRECTORY_SEPARATOR);
@@ -28,10 +29,20 @@ define("URL_CREAR_FABRICANTE", URL . "admin/fabricante/crear");
 define("URL_CREAR_PROVEEDOR", URL . "admin/proveedor/crear");
 define("URL_CREAR_PRODUCTO", URL . "admin/producto/crear");
 
-require_once 'app/core/Request.php';
+//require_once 'app/core/Request.php';
+require_once MODELS . "Pais.php";
 
-use app\core\Request;
 
-$controller = Request::getController(filter_input(INPUT_GET, "url"));
+//use app\core\Request;
+use app\models\Pais;
 
-$controller->httpRequestProcess();
+$pais = Pais::getObject("Pais", "paises", 3);
+$pais2 = Pais::getObject("Pais", "paises", 9);
+
+print($pais);
+print($pais2);
+
+
+//$controller = Request::getController(filter_input(INPUT_GET, "url"));
+
+//$controller->httpRequestProcess();
