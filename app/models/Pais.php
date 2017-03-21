@@ -16,16 +16,17 @@ use app\core\Model;
 
 class Pais extends Model {
     
-    const CLASS_NAME= __CLASS__;
     const TABLE_NAME = "paises";
     
     const SQL_STATEMENTS = [
-        Model::GET => "SELECT * FROM " . self::TABLE_NAME . " WHERE id=? LIMIT 1",
+        Model::GET => "SELECT * FROM " . self::TABLE_NAME . " WHERE id=:id LIMIT 1",
         Model::GET_ALL => "SELECT * FROM " . self::TABLE_NAME,
-        Model::SAVE => "INSERT INTO " . self::TABLE_NAME . " (id, nombre) VALUES (NULL, ?)",
+        Model::SAVE => "INSERT INTO " . self::TABLE_NAME . " (id, nombre) VALUES (NULL, :nombre)",
+        Model::UPDATE => "UPDATE " . self::TABLE_NAME . " SET nombre=:nombre WHERE id=:id",
+        Model::DELETE => "DELETE FROM " . self::TABLE_NAME . " WHERE id=:id",
     ];
     
-    private $id;
+    public $id;
     public $nombre;
     
     public function __construct($nombre = null, $id = null) {
@@ -45,7 +46,16 @@ class Pais extends Model {
     
     public function save() {
         $model = new ModelManager(__CLASS__, self::TABLE_NAME, self::SQL_STATEMENTS);
-        return $model->saveObject($this);
+        $model->saveObject($this);
+    }
+    
+    public function update() {
+        $model = new ModelManager(__CLASS__, self::TABLE_NAME, self::SQL_STATEMENTS);
+        $model->updateObject($this);
+    }
+    
+    public function delete() {
+        
     }
     
     public function setAttributes($args) {

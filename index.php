@@ -4,6 +4,8 @@
 
 session_start();
 
+
+
 define('DS', DIRECTORY_SEPARATOR);
 define('ROOT', realpath(dirname(__FILE__)) . DS);
 define('URL', 'http://localhost/geek-shop/');
@@ -42,21 +44,31 @@ $pais = Pais::get(25);
 $pais2 = Pais::get(4);
 $paises = Pais::all();
 
-/*$pais3 = new Pais("Argentina");
-if ($pais3->save()) {
-    print("Se ha guardado con éxito el país <b>".$pais3->nombre."</b>");
-}
-*/
+$pais3 = new Pais("Colombia");
+$pais3->save();
+    //print("Se ha guardado con éxito el país <b>".$pais3->nombre."</b>");
+
+
+
 
 print($pais);
 print("<br/>");
-print($pais2);
+print("</br>PAIS2: " . $pais2);
 
 print("<br/>");
+
+//$pais2->nombre = "Japón";
+//$pais2->update();
+print("<br/>");
+print("</br>NUEVO PAIS2: " . $pais2);
 
 foreach ($paises as $p) {
     print("<br/>");
     print($p);
+}
+
+if (isset($_SESSION["message"])) {
+    print($_SESSION["message"]);
 }
 
 //$controller = Request::getController(filter_input(INPUT_GET, "url"));

@@ -41,48 +41,50 @@ class ModelManager {
      * @param type $bindValues Valores que serán reemplazados en la consulta.
      * @return Un objeto de tipo Statement.
      */
-    private function prepareStatement($SQL, $bindValues = null) {
+    private function prepareStatement($SQL, $object = null) {
         $stm = $this->connection->prepare($SQL);
         
-        if ($bindValues) {
-            
-            foreach ($bindValues as $key => $value) {
-                $stm->bindValue($key, $value);
+        if ($object) {
+            foreach (get_object_vars($object) as $attr => $value) {
+                if ($value) {
+                    $stm->bindValue($attr, $value);
+                }
             }
         }
         
         return $stm;
     }
     
-    private function generateBindValues($object) {
-        $bindValues = [];
-        $cont = 1;
-        foreach (get_object_vars($object) as $attr => $value) {
-            $bindValues[$cont] = $value;
-            $cont += 1;
-        }
-        
-        return $bindValues;
-    }
-    
     public function saveObject($object) {
-        $ok = false;
         
         $this->connectDB();
         
-        $stm = $this->prepareStatement($this->sqlStatements[Model::SAVE], 
-                $this->generateBindValues($object));
+        $stm = $this->prepareStatement($this->sqlStatements[Model::SAVE],
+                $object);
         
         try {
             if ($stm->execute()) {
-                $ok = true;
-                print("ok");
+                $_SESSION["message"] = "<br/>Se ha creado correctamente el registro <b>" . $object->nombre . "</b>";
             }
         } catch (\PDOException $ex) {
-            print("Error al guardar el objeto.");
+            $_SESSION["message"] = "<b>Error al GUARDAR el objeto ". $ex->getMessage() ." </b>";
         }
+    }
+    
+    public function updateObject($object) {
         
-        return $ok;  
+        $this->connectDB();
+        
+        $stm = $this->prepareStatement($this->sqlStatements[Model::UPDATE], 
+               $object);
+        
+        try {
+            if ($stm->execute()) {
+                $_SESSION["message"] = "<br/>Se ha actualizado correctamente el registro <b>" . $object->nombre . "</b>";
+            }
+        } catch (Exception $ex) {
+            $_SESSION["message"] = "<b>Error al ACTUALIZAR el objeto ". $ex->getMessage() ." </b>";
+        }
     }
     
     public function getAll() {
@@ -91,7 +93,7 @@ class ModelManager {
         
         /* Se genera la consulta SQL y 
          * Se prepara la consulta en un objeto de tipo statement */
-        //$stm = $this->prepareStatement("SELECT * FROM $this->tableName");
+        
         $stm = $this->prepareStatement($this->sqlStatements[Model::GET_ALL]);
         
         try {
@@ -101,7 +103,7 @@ class ModelManager {
             }
         }
         catch (\PDOException $ex) {
-            print("El objeto no existe.");
+            $_SESSION["message"] = "Ocurrio un error al ejecutar la consulta " . $ex->getMessage();
         }
         
         $this->closeConnection($stm);
@@ -117,6 +119,9 @@ class ModelManager {
                 $objects[] = $this->createInstance($register);
             }
         }
+        else {
+            $_SESSION["message"] = "La tabla <b>" . $this->tableName . "<b/> está vacía.";
+        }
         
         return $objects;
     }
@@ -125,27 +130,23 @@ class ModelManager {
         /* Se crea una conexión con la base de datos. */
         $this->connectDB();
         
-        /* Se genera la consulta SQL */
-        //$SQL = "SELECT * FROM $this->tableName WHERE id=? LIMIT 1";
-        
         /* Se prepara la consulta en un objeto de tipo statement*/
         $stm = $this->connection->prepare($this->sqlStatements[Model::GET]);
         
         /* Se asignan los parámetros a la consulta */
-        $stm->bindValue(1, $pk);
+        $stm->bindValue("id", $pk);
         
         $instance = null;
         
         try {
             /* Se ejecuta la consulta */
             if ($stm->execute()) {
-                
                 /* Se retorna el objeto con los datos obtenido por la consulta. */
                 $instance =  $this->createInstance($stm->fetch());
             }
         }
         catch (\PDOException $ex) {
-            print("El objeto no existe.");
+            $_SESSION["message"] = "Ocurrio un error al ejecutar la consulta " . $ex->getMessage();
         }
         
         $this->closeConnection($stm);
@@ -159,6 +160,9 @@ class ModelManager {
             $modelInstance->setAttributes($args);
          
             return $modelInstance;
+        }
+        else {
+            $_SESSION["message"] = "La clase que está tratando de instanciar no existe.";
         }
     }
     
