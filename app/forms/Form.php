@@ -2,6 +2,10 @@
 
 namespace app\forms;
 
+require_once CORE . "ModelManager.php";
+
+use app\core\ModelManager;
+
 /**
  * Representa los formularios de cada uno de los modelos.
  * @regex Lista de expresiones regulares con las cuales se
@@ -32,16 +36,29 @@ class Form {
     const VOID = "empty";
     const LENGTH = "length";
 
-    const MAX_LENGTH = "max_length";
+    protected $fields;
+    protected $regex;
+    protected $maxLength;
+    protected $filters;
+    protected $messages;
 
-    public $regex;
-    public $fields;
-    public $infoFields;
     public $response;
     public $isValid;
 
-    public function __construct() {
+    public $cleanedData;
+
+    public function __construct($fields) {
+        $this->fields = $fields;
+        $this->cleanedData = [];
         $this->isValid = false;
+    }
+
+    private function clean() {
+        if ($this->fields) {
+            foreach ($this->fields as $name => $value) {
+                $this->cleanedData[$name] = trim(filter_var($value, $this->filters[$name]));
+            }
+        }
     }
     
     /**
@@ -49,49 +66,34 @@ class Form {
      * Verifica que cada campo no se encuetre vacío, que no supere el limite
      * máximo de caracteres permitidos y que cumpla con la expresión regular
      * que fue asignada.
+     * @foreignKeyInfo Información de las llaves foraneas contien el nombre de la tabla
+     * y la llave foranea que será validada.
      */
-    public function processForm($foreignKeyInfo = null) {
+    public function isValid($foreignKeyInfo = null) {
+        $this->clean();
         $this->response = [];
-        foreach ($this->fields as $key => $value) {
+        foreach ($this->cleanedData as $key => $value) {
+
             if ($foreignKeyInfo) { 
                 if (array_key_exists($key, $foreignKeyInfo)) {
-                    print("<br/>antes del continue");
+                    //print("<br/>antes del continue");
                     $table = $foreignKeyInfo[$key]["table"];
                     $fk = $foreignKeyInfo[$key]["fk"];
-                    
-                    require_once CORE . "Database.php";
-                    
-                    $conn = new \Database();
-                    $SQL = "SELECT id FROM $table WHERE id=:FK";
-                    $stm = $conn->prepare($SQL);
-                    $stm->bindParam(":FK", $fk);
-                    
-                    
-                    try {
-                        if ($stm->execute()) {
-                            if ($stm->rowCount() == 0) {
-                                $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::REGEX];
-                            }
-                        }
+                    $modelManager = ModelManager::getInstance();
+
+                    if (!$modelManager->exists($table, $fk)) {
+                        $this->response[$key] = $this->messages[$key][self::REGEX];
                     }
-                    catch (PDOException $e) {
-                        $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::VOID];
-                    }
-                    
-                    $stm->closeCursor();
-                    
-                    $conn = null;
                     
                     continue;
                 }
             }
-            print("<br/>despues del continue: ". $key);
+            //print("<br/>despues del continue: ". $key);
             $this->validateFields($key, $value);
         }
         
-        if (count($this->response) == 0) {
-            $this->isValid = true;
-        }
+        return (count($this->response) == 0);
+
     }
     
     private function validateFields($key, $value) {
@@ -108,7 +110,7 @@ class Form {
      */
     private function checkRegex($key, $value) {
         if (!preg_match_all($this->regex[$key], $value)) {
-            $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::REGEX];
+            $this->response[$key] = $this->messages[$key][self::REGEX];
         }
     }
     
@@ -125,13 +127,14 @@ class Form {
     private function checkLength($key, $value) {
         $len= strlen($value);
         $isValid = true;
-
+        //print("tam: ". $len);
+        //print("<br/> max tam".$this->maxLength[$key]);
         if ($len == 0) {
-            $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::VOID];
+            $this->response[$key] = $this->messages[$key][self::VOID];
             $isValid = false;
         }
-        elseif ($len > $this->infoFields[$key][self::MAX_LENGTH]) {
-            $this->response[$key] = $this->infoFields[$key][self::MESSAGES][self::LENGTH];
+        elseif ($len > $this->maxLength[$key]) {
+            $this->response[$key] = $this->messages[$key][self::LENGTH];
             $isValid = false;
         }
 

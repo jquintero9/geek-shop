@@ -5,7 +5,6 @@ namespace app\controllers;
 require_once CONTROLLERS . "Controller.php";
 require_once MODELS . "ProveedorModel.php";
 
-use app\controllers\Controller;
 use app\models\ProveedorModel;
 
 /**
@@ -18,8 +17,7 @@ class ListaProveedorController extends Controller {
     public function __construct() {
         parent::__construct("Lista de Proveedores");
         $this->templateName = "admin.php";
-        $this->context["action"] = "to-list.php";
-        $this->indexes = ProveedorModel::INDEXES;
+        $this->context["action"] = "lista-proveedores.php";
     }
 
     protected function get() {

@@ -3,10 +3,11 @@
 namespace app\controllers;
 
 require_once CONTROLLERS . "Controller.php";
-require_once MODELS . "LoginModel.php";
+require_once FORMS . "LoginForm.php";
+require_once CORE . "ModelManager.php";
 
-use app\controllers\Controller;
-use app\models\LoginModel;
+use app\forms\LoginForm;
+use app\core\ModelManager;
 
 /**
  * Description of Login
@@ -23,7 +24,7 @@ class LoginController extends Controller {
     }
 
     protected function get() {
-        //$this->loginAJAX = "<script src='". URL . "public/js/loginAJAX.js" ."'></script>";
+        $this->loginAJAX = "<script src='". URL . "public/js/loginAJAX.js" ."'></script>";
         if (!isset($_SESSION["user"])) {
             $this->render();
         }
@@ -33,20 +34,38 @@ class LoginController extends Controller {
     }
 
     protected function post() {
-        print("El login fue enviado por el método POST");
-        
-        $this->response = json_decode(LoginModel::login());
 
-        
-        print($this->response->message);
-        print("<br/>");
+        $AJAX = true;
 
-        if ($this->response->state == LoginModel::SUCCESS) {
-            header("Location: " . URL . "admin");
+        if (empty($_POST)) {
+            $data = file_get_contents('php://input');
+            $jsonData = json_decode($data, JSON_FORCE_OBJECT);
+            $POST = ["username" => $jsonData["username"], "password" => $jsonData["password"]];
         }
-        
-        $this->render();
-        
-    }
+        else {
+            $AJAX = false;
+            $POST = $_POST;
+        }
 
+        $form = new LoginForm($POST);
+
+        if ($form->isValid()) {
+            $modelManager = ModelManager::getInstance();
+            $this->response = $modelManager->login($form->cleanedData["username"], $form->cleanedData["password"]);
+
+            if ($AJAX) {
+                header("Content-Type: application/json; charset=UTF-8");
+                return print($this->response);
+            } else {
+                $this->response = json_decode($this->response);
+                if ($this->response->state == "success") {
+                    header("Location: " . URL . "admin");
+                }
+            }
+        }
+
+        $this->context["form"] = $POST;
+        $this->context["error"] = $form->response;
+        $this->render();
+    }
 }

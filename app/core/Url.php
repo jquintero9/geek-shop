@@ -14,7 +14,7 @@ namespace app\core;
 class Url {
     
     const URL_PATTERNS = [
-        "Login" => "/accounts\/login$/",
+        //"Login" => "/accounts\/login$/",
         "Logout" => "/accounts\/logout$/",
         "Admin" => "/admin$/",
         "ListaCategoria" => "/admin\/categoria$/",

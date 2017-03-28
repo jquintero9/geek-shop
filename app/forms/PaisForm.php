@@ -4,7 +4,6 @@ namespace app\forms;
 
 require_once FORMS . "Form.php";
 
-use app\forms\Form;
 
 /**
  * Description of PaisForm
@@ -17,16 +16,17 @@ class PaisForm extends Form {
         parent::__construct();
         $this->fields = $post;
         $this->regex = ["nombre" => "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/"];
-        
-        $this->infoFields = [
-            "nombre" => [
-                "messages" => [
-                    "regex" => "El nombre no debe contener digítos.",
-                    "empty" => "¿Cúal es el nombre del Páis?",
-                    "length" => "Ingrese máximo 40 caracteres."
-                ],
-                "max_length" => 40
-            ]
+
+        $this->messages = "nombre" => [
+            "regex" => "El nombre no debe contener digítos.",
+            "empty" => "¿Cúal es el nombre del Páis?",
+            "length" => "Ingrese máximo 40 caracteres."
+        ];
+
+        $this->maxLength = ["nombre" => 40];
+
+        $this->filters = [
+            "nombre" => FILTER_SANITIZE_STRING,
         ];
     }
     

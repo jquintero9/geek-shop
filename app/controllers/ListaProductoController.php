@@ -19,8 +19,7 @@ class ListaProductoController extends Controller {
     public function __construct() {
         parent::__construct("Lista de Productos");
         $this->templateName = "admin.php";
-        $this->context["action"] = "to-list.php";
-        $this->indexes = ProductoModel::INDEXES;
+        $this->context["action"] = "lista-productos.php";
     }
     
     protected function get() {

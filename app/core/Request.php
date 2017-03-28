@@ -4,11 +4,13 @@ namespace app\core;
 
 require_once CORE . "Url.php";
 require_once CONTROLLERS . "IndexController.php";
+require_once CONTROLLERS . "LoginController.php";
 require_once CONTROLLERS . "ForbiddenController.php";
 require_once CONTROLLERS . "PageNotFoundController.php";
 
 use app\core\Url;
 use app\controllers\IndexController;
+use app\controllers\LoginController;
 use app\controllers\ForbiddenController;
 use app\controllers\PageNotFoundController;
 
@@ -35,7 +37,7 @@ class Request {
      */
     public static function getController($url) {
         
-        if ($url != null) {
+        if (!\is_null($url)) {
             
             /* Se realiza la busqueda de la URL solicitada en la lista de 
              * patrones URL de la aplicación. */
@@ -64,7 +66,7 @@ class Request {
             
         }
         else {
-            return new IndexController();
+            return new LoginController();
         }
     }
     
@@ -82,7 +84,7 @@ class Request {
             $newController = new $instance;
             
             //Se comprueba que el nuevo controlador tenga el método setPK()
-            if (method_exists($newController, "setPK")) {
+            if (\method_exists($newController, "setPK")) {
                 
                 $newController->setPK(self::setID($coincidences));
             }

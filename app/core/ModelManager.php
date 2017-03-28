@@ -9,22 +9,43 @@ namespace app\core;
  */
 
 class ModelManager {
-    
+
+    const FK_TABLE_INDEX = "table";
+    const PK_INDEX = "pk";
+    const CLASS_NAME_FK = "class";
+
     private $className;
     private $tableName;
     private $sqlStatements;
+    private $foreignKeys;
+    
+    private static $modelManager;
     
     private $connection;
     
-    public function __construct($className, $tableName, $sqlStatements) {
+    private function __construct($className = "", $tableName = "", $sqlStatements = null, $foreignKeys = null) {
         $this->className = $className;
         $this->tableName = $tableName;
+        $this->foreignKeys = $foreignKeys;
         $this->sqlStatements = $sqlStatements;
     }
     
+    public function __clone() { }
+    
+    public static function getInstance($className = "", $tableName = "", $sqlStatements = null,
+                                        $foreignKeys = null) {
+        if (is_null(self::$modelManager)) {
+            self::$modelManager = new ModelManager($className, $tableName, $sqlStatements, $foreignKeys);
+        }
+        
+        return self::$modelManager;
+    }
+    
     private function connectDB() {
-        require_once CORE . "Database.php";
-        $this->connection = new \Database();
+        if (is_null($this->connection)) {
+            require_once CORE . "Database.php";
+            $this->connection = new \Database();
+        }
     }
     
     /** Se cierra la conexión con la base de datos y 
@@ -38,7 +59,7 @@ class ModelManager {
     /**
      * Prepara la sentencia SQL y asigna los bindValues.
      * @param type $SQL Consulta SQL
-     * @param type $bindValues Valores que serán reemplazados en la consulta.
+     * @param type $object Es el objeto sobre el cual se realizara la consulta.
      * @return Un objeto de tipo Statement.
      */
     private function prepareStatement($SQL, $object = null) {
@@ -116,14 +137,37 @@ class ModelManager {
         
         if ($stm->rowCount() > 0) {
             foreach ($stm->fetchAll() as $register) {
-                $objects[] = $this->createInstance($register);
+                $objects[] = $this->createInstance($this->className, $register);
             }
         }
         else {
-            $_SESSION["message"] = "La tabla <b>" . $this->tableName . "<b/> está vacía.";
+            $_SESSION["message"] = "La tabla <b>" . strtoupper($this->tableName) . "<b/> está vacía.";
         }
         
         return $objects;
+    }
+
+    private function getForeignObject($fk) {
+        $this->connectDB();
+
+        $objects = [];
+
+        foreach ($this->foreignKeys as $foreignKey => $array) {
+            $SQL = "SELECT * FROM ". $array[self::FK_TABLE_INDEX] .
+                "WHERE " . $array[self::PK_INDEX] . "=:id LIMIT 1";
+            $stm = $this->connection->prepare($SQL);
+            $stm->bindValue("id", $fk);
+
+            try {
+                if ($stm->excute()) {
+                    $objects[] = $this->createInstance($array[self::CLASS_NAME_FK], $stm->fetch());
+                }
+            }
+            catch (\PDOException $ex) {}
+            $stm->closeCursor();
+        }
+
+
     }
     
     public function getObject($pk) {
@@ -142,11 +186,17 @@ class ModelManager {
             /* Se ejecuta la consulta */
             if ($stm->execute()) {
                 /* Se retorna el objeto con los datos obtenido por la consulta. */
-                $instance =  $this->createInstance($stm->fetch());
+                if (\is_null($this->foreignKeys)) {
+                    $instance =  $this->createInstance($this->className, $stm->fetch());
+                }
+                else {
+
+                }
             }
         }
         catch (\PDOException $ex) {
-            $_SESSION["message"] = "Ocurrio un error al ejecutar la consulta " . $ex->getMessage();
+            $_SESSION["message"] = "Ocurrio un error al ejecutar la consulta " . $ex->getMessage() . " " .
+            $ex->getLine();
         }
         
         $this->closeConnection($stm);
@@ -154,9 +204,9 @@ class ModelManager {
         return $instance;
     }
     
-    private function createInstance($args) {
-        if (class_exists($this->className)) {
-            $modelInstance = new $this->className;
+    private function createInstance($className, $args) {
+        if (class_exists($className)) {
+            $modelInstance = new $className;
             $modelInstance->setAttributes($args);
          
             return $modelInstance;
@@ -164,6 +214,55 @@ class ModelManager {
         else {
             $_SESSION["message"] = "La clase que está tratando de instanciar no existe.";
         }
+    }
+
+    public function exists($tableName, $pk) {
+        $this->connectDB();
+        $SQL = "SELECT * FROM $tableName WHERE id=?";
+        $stm = $this->connection->prepare($SQL);
+        $stm->bindValue(1, $pk);
+
+        try {
+            if ($stm->execute()) {
+                return ($stm->rowCount > 0);
+            }
+        }
+        catch (\PDOException $e) {
+            $_SESSION["message"] = "Ocurrio un error al verificar la existencia del registro.";
+        }
+    }
+
+    public function login($username, $password) {
+
+        $this->connectDB();
+
+        $sql = "SELECT * FROM usuarios WHERE username=? AND password=? LIMIT 1";
+
+        $stm = $this->connection->prepare($sql);
+        $stm->bindValue(1, $username);
+        $stm->bindValue(2, $password);
+
+        $response = [];
+
+        if ($stm->execute()) {
+            if ($stm->rowCount() > 0) {
+                //$this->className =
+                //$pk = $stm->fetch()["id"];
+                //$usuario = $this->getObject($pk);
+                $_SESSION['user'] = $username;
+                $response = ["state" => "success"];
+            }
+            else {
+                $response = [
+                    "state" => "no_exists",
+                    "message" => "El nombre de usuario y/o contraseña no son válidos.",
+                ];
+            }
+        }
+
+        $this->closeConnection($stm);
+
+        return json_encode($response);
     }
     
 }

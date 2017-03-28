@@ -2,9 +2,11 @@
 
 namespace app\models;
 
-require_once MODELS . "Model.php";
+require_once  CORE . "Model.php";
+require_once CORE . "ModelManager.php";
 
-use app\models\Model;
+use app\core\Model;
+use app\core\ModelManager;
 
 /**
  * Description of ProveedorModel
@@ -12,35 +14,92 @@ use app\models\Model;
  * @author JHON
  */
 class ProveedorModel extends Model {
-    
-    const INDEXES = [
-        "ID",
-        "NIT",
-        "NOMBRE",
-        "PAÍS",
-        "TELÉFONO",
-        "PÁGINA WEB",
+
+    const TABLE_NAME = "proveedores";
+
+    const SQL_STATEMENTS = [
+        Model::GET => "SELECT * FROM " . self::TABLE_NAME . " WHERE id=:id LIMIT 1",
+        Model::GET_ALL => "SELECT * FROM " . self::TABLE_NAME,
+        Model::SAVE => "INSERT INTO " . self::TABLE_NAME .
+            "(id, nit, nombre, pais, telefono, web)" .
+            "VALUES (NULL,:nit,:nombre,:pais,:telefono,:web)",
+        Model::UPDATE => "UPDATE " . self::TABLE_NAME .
+            " SET nit=:nit nombre=:nombre pais=:pais telefono=:telefono web=:web",
+        Model::DELETE => "DELETE " . self::TABLE_NAME . " WHERE id=:id"
     ];
+
+    const FOREIGN_KEYS = [
+        "pais" => ["table" => "paises", "pk" => "id", "class" => "app\\models\\PaisModel"]
+    ];
+
+    public $id;
+    public $nit;
+    public $nombre;
+    public $pais;
+    public $telefono;
+    public $web;
     
-    public function __construct() {
-        parent::__construct();
-        $this->tableName = "proveedores";
-        $this->className = "ProveedorModel";
-        $this->indexesOfTable = [
-            "id",
-            "nit",
-            "nombre",
-            "pais",
-            "telefono",
-            "pagina_web"
-        ];
-        
-        $this->messages = [
-            Model::SELECT => "La lista de PROVEEDORES está vacía.",
-            Model::INSERT => "El proveedor <b>{objectName}</b> se ha creado correctnamente.",
-            Model::UPDATE => "El proveedor <b>{objectName}</b> se ha actualizado correctamente.",
-            Model::DELETE => "El proveedor se ha eliminado correctamente.",
-        ];
+    public function __construct($id = null, $nit = null, $nombre = null, $pais = null,
+                                $telefono = null, $web = null) {
+        $this->id = $id;
+        $this->nit = $nit;
+        $this->nombre = $nombre;
+        $this->pais = $pais;
+        $this->telefono = $telefono;
+        $this->web = $web;
+    }
+
+    public static function get($pk) {
+        $modelManager = ModelManager::getInstance(__CLASS__, self::TABLE_NAME,
+            self::SQL_STATEMENTS, self::FOREIGN_KEYS);
+        return $modelManager->getObject($pk);
+    }
+
+    public static function all() {
+
+    }
+
+    public function save() {
+
+    }
+
+    public function update() {
+
+    }
+
+    public function delete() {
+
+    }
+
+    public function setAttributes($args) {
+        foreach ($args as $name => $value) {
+            if (\property_exists(__CLASS__, $name)) {
+                $this->__set($name, $value);
+            }
+        }
+    }
+
+    public function __set($name, $value) {
+        switch ($name) {
+            case "id":
+                $this->id = $value;
+                break;
+            case "nit":
+                $this->nit = $value;
+                break;
+            case "nombre":
+                $this->nombre = $value;
+                break;
+            case "pais":
+                $this->pais = $value;
+                break;
+            case "telefono":
+                $this->telefono = $value;
+                break;
+            case "web":
+                $this->web = $value;
+                break;
+        }
     }
     
     public function validateForeignKeyPais() {
